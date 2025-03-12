@@ -14,3 +14,11 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## After all installation For Run Emulator
+flutter devices
+flutter emulators
+flutter emulators --launch Pixel_8_Pro_Pawan
+flutter run
+flutter run -d Pixel_8_Pro_Pawan
+
