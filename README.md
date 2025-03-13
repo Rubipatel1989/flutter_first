@@ -24,3 +24,8 @@ flutter emulators --launch Pixel_8_Pro_Pawan
 flutter run
 flutter run -d Pixel_8_Pro_Pawan
 
+## For clean
+cd android
+./gradlew clean
+./gradlew build
+
