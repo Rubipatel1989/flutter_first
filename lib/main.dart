@@ -16,10 +16,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter API Pagination',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Paginated Todo List'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
