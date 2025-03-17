@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Todo Details - ID: ${todo['id']}"),
+          title: Text("User Details - ID: ${todo['id']}"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
