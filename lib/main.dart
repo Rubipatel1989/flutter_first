@@ -14,12 +14,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter API Demo',
+      title: 'Flutter API Pagination',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Users List'),
+      home: const MyHomePage(title: 'Paginated Todo List'),
     );
   }
 }
@@ -36,6 +36,8 @@ class _MyHomePageState extends State<MyHomePage> {
   List todos = [];
   bool isLoading = true;
   String selectedTodo = "";
+  int currentPage = 0; // Tracks the current page
+  final int itemsPerPage = 10; // Number of items per page
 
   @override
   void initState() {
@@ -43,50 +45,96 @@ class _MyHomePageState extends State<MyHomePage> {
     fetchTodos();
   }
 
+  /// Fetch the complete todo list
   Future<void> fetchTodos() async {
+    print("Fetching todos from API...");
+
     try {
-      final response =
-          await http.get(Uri.parse(apiBaseUrl)).timeout(Duration(seconds: 10));
+      final response = await http.get(Uri.parse(apiBaseUrl)).timeout(const Duration(seconds: 10));
+      print("Response status: ${response.statusCode}");
+
       if (response.statusCode == 200) {
+        final List decodedData = jsonDecode(response.body);
         setState(() {
-          todos = jsonDecode(response.body);
+          todos = decodedData;
           isLoading = false;
         });
       } else {
-        setState(() {
-          isLoading = false;
-        });
+        print("Failed to load todos, status: ${response.statusCode}");
       }
     } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
+      print("Error fetching todos: $error");
     }
   }
 
+  /// Fetch details of a single todo and show in popup
   Future<void> fetchTodoDetails(int id) async {
-    final response = await http.get(Uri.parse("$apiBaseUrl$id"));
-    if (response.statusCode == 200) {
-      setState(() {
-        selectedTodo = jsonDecode(response.body)['title'];
-      });
-    } else {
-      throw Exception('Failed to load todo details');
+    print("Fetching todo details for ID: $id");
+
+    try {
+      final response = await http.get(Uri.parse("$apiBaseUrl$id")).timeout(const Duration(seconds: 10));
+      print("Response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> todo = jsonDecode(response.body);
+        showTodoPopup(todo);
+      } else {
+        print("Failed to load todo details, status: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error fetching todo details: $error");
     }
   }
 
-  Future<void> addTodo() async {
-    final response = await http.post(
-      Uri.parse(apiBaseUrl),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"title": "New Task", "completed": false}),
+  /// Show the todo details in a popup
+  void showTodoPopup(Map<String, dynamic> todo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Todo Details - ID: ${todo['id']}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Title: ${todo['title']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text("Completed: ${todo['completed'] ? "Yes" : "No"}"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
     );
-    if (response.statusCode == 201) {
+  }
+
+  /// Get paginated data
+  List getPaginatedTodos() {
+    int startIndex = currentPage * itemsPerPage;
+    int endIndex = startIndex + itemsPerPage;
+    return todos.sublist(startIndex, endIndex > todos.length ? todos.length : endIndex);
+  }
+
+  /// Move to the next page
+  void nextPage() {
+    if ((currentPage + 1) * itemsPerPage < todos.length) {
       setState(() {
-        todos.insert(0, jsonDecode(response.body));
+        currentPage++;
       });
-    } else {
-      throw Exception('Failed to add todo');
+    }
+  }
+
+  /// Move to the previous page
+  void previousPage() {
+    if (currentPage > 0) {
+      setState(() {
+        currentPage--;
+      });
     }
   }
 
@@ -103,33 +151,36 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 Expanded(
                   child: ListView.builder(
-                    itemCount: todos.length,
+                    itemCount: getPaginatedTodos().length,
                     itemBuilder: (context, index) {
+                      final todo = getPaginatedTodos()[index];
                       return ListTile(
-                        title: Text(todos[index]['title']),
-                        subtitle: Text("ID: ${todos[index]['id']}"),
-                        onTap: () => fetchTodoDetails(todos[index]['id']),
+                        title: Text(todo['title']),
+                        subtitle: Text("ID: ${todo['id']}"),
+                        onTap: () => fetchTodoDetails(todo['id']),
                       );
                     },
                   ),
                 ),
-                selectedTodo.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          "Selected Todo: $selectedTodo",
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      )
-                    : Container(),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: previousPage,
+                        child: const Text("Previous"),
+                      ),
+                      Text("Page ${currentPage + 1}"),
+                      ElevatedButton(
+                        onPressed: nextPage,
+                        child: const Text("Next"),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: addTodo,
-        tooltip: 'Add Todo',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }
