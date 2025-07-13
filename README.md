@@ -18,14 +18,14 @@ samples, guidance on mobile development, and a full API reference.
 https://www.youtube.com/watch?v=56xvk6OHTpM&t=1274s
 0.49.52
 ## After all installation For Run Emulator
-flutter devices
-flutter emulators
-flutter emulators --launch Pixel_8_Pro_Pawan
-flutter run
-flutter run -d Pixel_8_Pro_Pawan
+1. flutter devices
+2. flutter emulators
+3. flutter emulators --launch Pixel_8_Pro_Pawan
+4. flutter run
+5. flutter run -d Pixel_8_Pro_Pawan
 
 ## For clean
-cd android
-./gradlew clean
-./gradlew build
+1. cd android
+2. ./gradlew clean
+3. ./gradlew build
 
